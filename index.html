@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Task Manager</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo">
+        <i data-lucide="layers" class="logo-icon"></i>
+        <h2>SmartTask</h2>
+      </div>
+      <nav class="nav-menu">
+        <a href="#" class="nav-item active" data-view="dashboard" id="nav-dashboard">
+          <i data-lucide="layout-grid"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-view="matrix" id="nav-matrix">
+          <i data-lucide="grid"></i>
+          <span>Eisenhower Matrix</span>
+        </a>
+        <a href="#" class="nav-item" data-view="pomodoro" id="nav-pomodoro">
+          <i data-lucide="timer"></i>
+          <span>Focus Timer</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="theme-toggle" class="theme-btn">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+          <span>Toggle Theme</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <h1 id="greeting">Hello, Explorer</h1>
+          <p id="current-date">Saturday, June 20</p>
+        </div>
+        <div class="header-right">
+          <div class="progress-container">
+            <div class="progress-info">
+              <span>Task Progress</span>
+              <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar-wrapper">
+              <div id="progress-fill" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- View 1: Dashboard View -->
+      <section id="view-dashboard" class="content-view active">
+        <!-- Smart Task Form -->
+        <div class="task-form-card glass">
+          <form id="task-form">
+            <div class="input-group">
+              <i data-lucide="plus-circle" class="input-icon"></i>
+              <input type="text" id="task-input" autocomplete="off" placeholder="Add task... e.g. Design review tomorrow at 2pm #work !high">
+              <button type="submit" class="add-task-btn">
+                <span>Add Task</span>
+                <i data-lucide="arrow-right"></i>
+              </button>
+            </div>
+            <!-- Live NLP Parser Badges -->
+            <div id="nlp-feedback" class="nlp-feedback hidden">
+              <span class="nlp-label">Parsed:</span>
+              <span id="parsed-priority" class="nlp-badge priority-none hidden"></span>
+              <span id="parsed-category" class="nlp-badge category-none hidden"></span>
+              <span id="parsed-date" class="nlp-badge date-none hidden"></span>
+            </div>
+
+            <!-- Manual Overrides (Expandable) -->
+            <div class="form-options">
+              <div class="option-select">
+                <label for="task-priority"><i data-lucide="alert-triangle"></i> Priority</label>
+                <select id="task-priority">
+                  <option value="none">None</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div class="option-select">
+                <label for="task-category"><i data-lucide="tag"></i> Category</label>
+                <select id="task-category">
+                  <option value="inbox">Inbox</option>
+                  <option value="work">Work</option>
+                  <option value="personal">Personal</option>
+                  <option value="learning">Learning</option>
+                  <option value="health">Health</option>
+                </select>
+              </div>
+              <div class="option-select">
+                <label for="task-date"><i data-lucide="calendar"></i> Due Date</label>
+                <input type="date" id="task-date">
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Task List Dashboard -->
+        <div class="dashboard-controls glass">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="search-input" placeholder="Search tasks...">
+          </div>
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All</button>
+            <button class="filter-tab" data-filter="pending">Pending</button>
+            <button class="filter-tab" data-filter="completed">Completed</button>
+          </div>
+          <div class="filter-selects">
+            <select id="category-filter">
+              <option value="all">All Categories</option>
+              <option value="inbox">Inbox</option>
+              <option value="work">Work</option>
+              <option value="personal">Personal</option>
+              <option value="learning">Learning</option>
+              <option value="health">Health</option>
+            </select>
+            <select id="sort-select">
+              <option value="date-asc">Due Date (Soonest)</option>
+              <option value="date-desc">Due Date (Latest)</option>
+              <option value="priority-desc">Priority (High to Low)</option>
+              <option value="priority-asc">Priority (Low to High)</option>
+              <option value="alpha">Alphabetical</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tasks Content -->
+        <div class="tasks-lists-wrapper">
+          <!-- Pending Tasks Section -->
+          <div class="tasks-section" id="pending-section">
+            <h3 class="section-title">Pending Tasks (<span id="pending-count">0</span>)</h3>
+            <div id="pending-list" class="task-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Completed Tasks Section -->
+          <div class="tasks-section" id="completed-section">
+            <h3 class="section-title">Completed Tasks (<span id="completed-count">0</span>)</h3>
+            <div id="completed-list" class="task-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div id="empty-state" class="empty-state glass hidden">
+            <i data-lucide="check-square" class="empty-icon"></i>
+            <h3>All cleared!</h3>
+            <p>Add some tasks using the input above to get started.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 2: Eisenhower Matrix View -->
+      <section id="view-matrix" class="content-view">
+        <div class="view-header">
+          <h2>Eisenhower Matrix</h2>
+          <p>Prioritize tasks by urgency and importance</p>
+        </div>
+        <div class="matrix-grid">
+          <!-- Quadrant 1: Urgent & Important -->
+          <div class="matrix-quadrant quadrant-q1 glass" data-urgency="true" data-importance="true">
+            <div class="quadrant-header q1">
+              <div class="quadrant-title">
+                <span class="quadrant-badge">Q1</span>
+                <h3>Do First</h3>
+              </div>
+              <span class="quadrant-desc">Urgent & Important</span>
+            </div>
+            <div class="matrix-task-list" id="matrix-q1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quadrant 2: Important, Not Urgent -->
+          <div class="matrix-quadrant quadrant-q2 glass" data-urgency="false" data-importance="true">
+            <div class="quadrant-header q2">
+              <div class="quadrant-title">
+                <span class="quadrant-badge">Q2</span>
+                <h3>Schedule</h3>
+              </div>
+              <span class="quadrant-desc">Important but Not Urgent</span>
+            </div>
+            <div class="matrix-task-list" id="matrix-q2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quadrant 3: Urgent, Not Important -->
+          <div class="matrix-quadrant quadrant-q3 glass" data-urgency="true" data-importance="false">
+            <div class="quadrant-header q3">
+              <div class="quadrant-title">
+                <span class="quadrant-badge">Q3</span>
+                <h3>Delegate</h3>
+              </div>
+              <span class="quadrant-desc">Urgent but Not Important</span>
+            </div>
+            <div class="matrix-task-list" id="matrix-q3">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quadrant 4: Not Urgent, Not Important -->
+          <div class="matrix-quadrant quadrant-q4 glass" data-urgency="false" data-importance="false">
+            <div class="quadrant-header q4">
+              <div class="quadrant-title">
+                <span class="quadrant-badge">Q4</span>
+                <h3>Eliminate</h3>
+              </div>
+              <span class="quadrant-desc">Neither Urgent nor Important</span>
+            </div>
+            <div class="matrix-task-list" id="matrix-q4">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 3: Pomodoro Focus Timer View -->
+      <section id="view-pomodoro" class="content-view">
+        <div class="view-header">
+          <h2>Focus Timer</h2>
+          <p>Boost your productivity with the Pomodoro technique</p>
+        </div>
+        <div class="pomodoro-container glass">
+          <div class="timer-tabs">
+            <button class="timer-tab active" data-time="1500" data-mode="pomodoro">Pomodoro</button>
+            <button class="timer-tab" data-time="300" data-mode="short">Short Break</button>
+            <button class="timer-tab" data-time="900" data-mode="long">Long Break</button>
+          </div>
+          
+          <div class="timer-display-wrapper">
+            <svg class="timer-ring" viewBox="0 0 200 200">
+              <circle class="timer-ring-bg" cx="100" cy="100" r="85"></circle>
+              <circle id="timer-progress" class="timer-ring-progress" cx="100" cy="100" r="85"></circle>
+            </svg>
+            <div class="timer-text" id="timer-display">25:00</div>
+          </div>
+
+          <div class="timer-task-selector">
+            <label for="timer-task-select">Focusing on:</label>
+            <select id="timer-task-select">
+              <option value="none">No specific task selected</option>
+              <!-- Populated dynamically with pending tasks -->
+            </select>
+          </div>
+
+          <div class="timer-controls">
+            <button id="timer-start" class="timer-btn primary">
+              <i data-lucide="play"></i>
+              <span>Start</span>
+            </button>
+            <button id="timer-pause" class="timer-btn secondary hidden">
+              <i data-lucide="pause"></i>
+              <span>Pause</span>
+            </button>
+            <button id="timer-reset" class="timer-btn text-btn">
+              <i data-lucide="rotate-ccw"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <!-- Focus Stats Summary -->
+          <div class="focus-summary">
+            <div class="focus-stat">
+              <span class="stat-value" id="pomodoros-completed">0</span>
+              <span class="stat-label">Sessions Done</span>
+            </div>
+            <div class="focus-stat">
+              <span class="stat-value" id="focus-time-total">0m</span>
+              <span class="stat-label">Focus Time</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- JavaScript file -->
+  <script src="app.js"></script>
+</body>
+</html>
